@@ -23,6 +23,7 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+    stop_grace_period: 60s
     deploy:
       resources:
         limits:
@@ -45,8 +46,8 @@ services:
     command:
       [
         "sh",
-        "-c",
-        'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"',
+        "-ec",
+        'exec redis-server --appendonly yes --appendfsync everysec --requirepass "$$REDIS_PASSWORD"',
       ]
     ports:
       - "6379:6379"
@@ -56,12 +57,13 @@ services:
       test:
         [
           "CMD-SHELL",
-          'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep PONG',
+          'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG',
         ]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
+    stop_grace_period: 30s
     deploy:
       resources:
         limits:
@@ -74,33 +76,35 @@ services:
       - monitoring
 
   minio:
-    image: quay.io/minio/aistor/minio:latest
+    image: quay.io/minio/aistor/minio:RELEASE.2026-09-19T17-05-25Z
     container_name: minio
     restart: unless-stopped
     env_file:
       - env/minio.env
     environment:
       TZ: ${TZ:-UTC}
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":9001" --license /minio.license
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - "./minio/data:/mnt/data"
+      - "./minio/data:/data"
       - "./minio/minio.license:/minio.license:ro"
-      - "./minio/certs:/etc/minio/certs"
+      - "./minio/certs:/etc/minio/certs:ro"
     healthcheck:
-        test: ["CMD", "mc", "ready", "local"]
-        interval: 5s
-        timeout: 5s
-        retries: 5
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 60s
     deploy:
       resources:
         limits:
           cpus: "1.00"
-          memory: 10G
+          memory: 2G
         reservations:
-          memory: 1G
+          memory: 512M
     networks:
       - infra
       - monitoring
