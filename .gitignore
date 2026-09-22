@@ -148,14 +148,22 @@ activemq-data/
 *.sage.py
 
 # Environments
-.env
+*.env
+!*.env.example
 .envrc
 .venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+
+# Local Docker volumes
+postgres/data/
+redis/data/
+minio/data/
+prometheus/data/
+loki/data/
+alloy/data/
+grafana/data/
+postgres-data/
+redis-data/
+minio-data/
 
 # Spyder project settings
 .spyderproject
