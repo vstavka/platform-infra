@@ -157,6 +157,7 @@ activemq-data/
 postgres/data/
 redis/data/
 minio/data/
+kafka/data/
 prometheus/data/
 loki/data/
 alloy/data/

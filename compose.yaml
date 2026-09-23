@@ -109,6 +109,41 @@ services:
       - infra
       - monitoring
 
+  kafka:
+    image: apache/kafka:4.3.1
+    container_name: kafka
+    restart: unless-stopped
+    env_file:
+      - env/kafka.env
+    environment:
+      TZ: ${TZ:-UTC}
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    volumes:
+      - "./kafka/data:/var/lib/kafka/data"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+    stop_grace_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.50"
+          memory: 2G
+        reservations:
+          memory: 512M
+    networks:
+      - infra
+      - monitoring
+
 networks:
   infra:
     name: infra
